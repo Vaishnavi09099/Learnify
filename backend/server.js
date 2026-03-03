@@ -6,6 +6,7 @@ import express from 'express';
 
 import authRoutes from './routes/authRoutes.js';
 import documentRoutes from './routes/documentRoutes.js'
+import flashcardRoutes from './routes/flashcardRoutes.js'
 
 
 
@@ -23,6 +24,7 @@ app.use(express.urlencoded({extended:true}))
 
 app.use('/api/auth',authRoutes)
 app.use('/api/documents',documentRoutes);
+app.use('/api/flashcards',flashcardRoutes);
 
 app.get("/",(req,res)=>{
     res.send("Server running")
