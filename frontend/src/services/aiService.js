@@ -78,4 +78,4 @@ const authService = {
     genrateFlashcards,getChatHistory,explainConcept,updateProfile,chat,generateSummary,generateQuiz 
 }
 
-export default authService;
+export default aiService;
