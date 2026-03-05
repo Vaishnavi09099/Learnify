@@ -11,14 +11,16 @@ import FlashCardPage from './pages/Flashcards/FlashCardPage';
 import QuizResultPage from './pages/Quizzes/QuizResultPage';
 import ProfilePage from './pages/Profile/ProfilePage';
 import QuizTakePage from './pages/Quizzes/QuizTakePage';
+import { useAuth } from './context/AuthContext';
+
 
 
 
 
 
 const App = () => {
-  const isAuthenticated = false;
-  const loading = false;
+  
+  const {isAuthenticated, loading} = useAuth();
   if(loading){
     return(
       <div className='flex items-center justify-center h-screen'><p>Loading.......</p></div>
