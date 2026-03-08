@@ -23,7 +23,7 @@ const LoginPage = ()=>{
     try{
       const {token,user} = await authService.login(email,password);
       login(user,token);
-      toast.sucess('Logged in successfully!');
+      toast.success('Logged in successfully!');
       navigate('/dashboard');
     }catch(err){
       setError(err.message || "Failed to Login.Please check your credentials!");
@@ -63,7 +63,7 @@ const LoginPage = ()=>{
             <input className='ml-3 outline-none' 
             placeholder='Enter your password'
             
-            onChange={(e)=>setPassword('password')}></input>
+            onChange={(e)=>setPassword(e.target.value)}></input>
           </div>
 
           {error &&(

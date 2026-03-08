@@ -26,6 +26,8 @@ export const register = async (req,res,next)=>{
     });
 
     const token = generateToken(user._id);
+     console.log("Register body:", req.body);
+     console.log("Register API called");
 
     res.status(200).json({
         success:true,
@@ -40,12 +42,15 @@ export const register = async (req,res,next)=>{
             ,token
         },
         message:"User registered Successfully!"
-    })
+        
+    }
+)
 
    }catch(err){
+      console.log("REGISTER ERROR:", err);
     return res.json({
         success:false,
-        message:"Something went wrong"
+        message:err.message
     })
 
    }
@@ -54,24 +59,24 @@ export const register = async (req,res,next)=>{
 export const login = async (req,res)=>{
     try{
         const {email,password} = req.body;
+
         if(!email || !password){
             return res.status(400).json({
                 success:false,
                 error:"Please provide email and password",
-
             });
         }
 
-        const User = await User.findOne({email}).select("+password");
+        const user = await User.findOne({email}).select("+password");
 
-        if(!User){
+        if(!user){
             return res.status(401).json({
                 success:false,
                 message:"Invalid credentials"
             })
         }
 
-        const isMatch = await User.matchPassword(password);
+        const isMatch = await user.matchPassword(password);
 
         if(!isMatch){
             return res.status(401).json({
@@ -80,24 +85,25 @@ export const login = async (req,res)=>{
             })
         }
 
-        const token = generateToken(User._id);
+        const token = generateToken(user._id);
+
         res.status(200).json({
             success:true,
             user:{
-                id:User._id,
-                username:User.username,
-                email:User.email,
-                profileImage:User.profileImage,
-
-
+                id:user._id,
+                username:user.username,
+                email:user.email,
+                profileImage:user.profileImage,
             },
             token,
-            message:"Login Succesfull"
+            message:"Login Successful"
         })
+
     }catch(err){
+        console.log(err) 
         return res.status(500).json({
             success:false,
-            message:"Invalid"
+            message:"Server Error"
         })
     }
 };

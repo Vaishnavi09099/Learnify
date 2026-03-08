@@ -11,8 +11,9 @@ const login = async (email , password)=>{
         return response.data;
 
     }catch(err){
-        throw new Error("Login failed!Please try again");
-    }
+    throw new Error(err.response?.data?.message || "Login failed! Please try again");
+}
+
 }
 
 const register = async(username,email,password)=>{
@@ -23,9 +24,9 @@ const register = async(username,email,password)=>{
         return response.data;
 
     }catch(err){
-        throw new Error("Registration failed!")
+    throw new Error(err.response?.data?.message || "Login failed! Please try again");
+}
 
-    }
 }
 
 const getProfile = async()=>{
@@ -34,29 +35,29 @@ const getProfile = async()=>{
         return response.data;
 
     }catch(err){
-          throw new Error("An unknown error occured!")
+    throw new Error(err.response?.data?.message || "Login failed! Please try again");
+}
 
-    }
 }
 const updateProfile = async(userData)=>{
     try{
-        const response = await axiosInstance.get(API_PATHS.AUTH.UPDATE_PROFILE,userData);
+        const response = await axiosInstance.put(API_PATHS.AUTH.UPDATE_PROFILE,userData);
         return response.data;
 
     }catch(err){
-          throw new Error("An unknown error occured!")
+    throw new Error(err.response?.data?.message || "Login failed! Please try again");
+}
 
-    }
 }
 const changePassword = async(passwords)=>{
     try{
-        const response = await axiosInstance.get(API_PATHS.AUTH.CHANGE_PASSWORD,passwords);
+        const response = await axiosInstance.post(API_PATHS.AUTH.CHANGE_PASSWORD,passwords);
         return response.data;
 
     }catch(err){
-          throw new Error("An unknown error occured!")
+    throw new Error(err.response?.data?.message || "Login failed! Please try again");
+}
 
-    }
 }
 
 
