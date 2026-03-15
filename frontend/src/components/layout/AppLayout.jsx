@@ -3,7 +3,7 @@ import SideBar from './SideBar'
 import Header from './Header'
 
 const AppLayout = ({children}) => {
-    const [isSidebarOpen,setIsSidebarOpen]=useState(false);
+    const [isSidebarOpen,setIsSidebarOpen]=useState(true);
     const toggleSidebar=()=>{
         setIsSidebarOpen(!isSidebarOpen);
     }
@@ -13,10 +13,10 @@ const AppLayout = ({children}) => {
     <div className='min-h-screen w-full flex bg-gray-400'>
        
 
-        <SideBar />
-         <div className='bg-gray-100 w-full'>
-             <Header />
-        {children}
+        <SideBar isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar}/>
+         <div className={`bg-gray-100 w-full transition-all duration-300 ${isSidebarOpen ? "ml-64" : "ml-0"}`}>
+                <Header toggleSideBar={toggleSidebar}/>
+                {children}
 
         </div>
        
