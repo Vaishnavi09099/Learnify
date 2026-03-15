@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import progressService from '../../services/progressService'
 import toast from 'react-hot-toast'
-import {FileText,BookOpen,BrainCircuit,TrendingUp,Clock} from 'lucide-react'
+import {FileText,BookOpen,BrainCircuit,TrendingUp,Clock, Icon} from 'lucide-react'
 import { ClipLoader } from "react-spinners";
 import AppLayout from '../../components/layout/AppLayout';
 
@@ -73,11 +73,54 @@ const DashboardPage = () => {
 }]
   return (
     <AppLayout>
-        <div>DashboardPage</div>
+        <div>
+        <h1>Dashboard</h1>
+        <p>Track your learning progress and activity</p>
+
+        <div>
+          {stats.map((stat,index)=>{
+            const icon = stats.icon;
+           return( 
+           <div>
+              <p>{stats.label}</p>
+              <p>{stats.value}</p>
+              
+          
+            <div>
+              <icon />
+            </div>
+            </div>
+           );
+           
+
+})}
+        </div>
+
+        <div>
+          <div>
+            <Clock />
+            <h2>Recent Activity</h2>
+          </div>
+
+          {dashboardData.recentActivity?.documents.length>0 ?(
+            dashboardData.recentActivity.documents.map((doc,index)=>(
+              <div>
+                <div>
+                  <p>Accessed: {doc.title}</p>
+                  <p>{new Date(doc.lastAccessed).toLocaleString()}</p>
+                </div>
+              </div>
+            ))):(
+              <p>No recent</p>
+            )}
+            
+        
+        </div>
+   </div>
 
     </AppLayout>
   
   )
 }
 
-export default DashboardPage
+export default DashboardPage;

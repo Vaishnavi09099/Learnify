@@ -36,15 +36,22 @@ const SideBar = ({isSidebarOpen,toggleSidebar}) => {
    
 
       <div className=' mt-2'>
-        {navLinks.map((link)=>(
-          
-          <NavLink  to={link.to} className="flex px-5 mx-4 py-2 items-center hover:bg-green-500 hover:rounded-lg  gap-3 hover:shadow-md hover:text-white font-semibold" >
+        {navLinks.map((link,index)=>{
+          const Icon = link.icon;
+          return(
+          <div key={index}>
+              <NavLink  to={link.to} className="flex px-5 mx-4 py-2 items-center hover:bg-green-500 hover:rounded-lg  gap-3 hover:shadow-md hover:text-white font-semibold" >
 
             <link.icon size={18} strokeWidth={2.5} />
             {link.text }
 
           </NavLink>
-        ))}
+
+          </div>
+          )
+          
+        
+})}
 
       </div>
 

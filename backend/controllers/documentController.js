@@ -1,6 +1,6 @@
 import { extractTextFromPDF } from "../utils/pdfParser.js";
 import chunkText from "../utils/textChunker.js";
-
+import fs from 'fs/promises';
 
 export const uploadDocument = async(req , res , next, )=>{
     try{
@@ -11,7 +11,7 @@ export const uploadDocument = async(req , res , next, )=>{
 
             })
         }
-        const {title} = req.file;
+        const {title} = req.body;
         if(!title){
             await FileSystem.unlink(req.file.path);
             return res.status(400).json({
@@ -153,8 +153,8 @@ export const getDocument = async(req , res , next, )=>{
             })
         }
 
-        const flashcarCount = await flashcarCount.countDocuments({documentId: document._id,userId:req.user._id})
-        const quizCount = await quizCount.countDocuments({documentId: document._id,userId:req.user._id});
+        const flashcarCount = await FlashCard.countDocuments({documentId: document._id,userId:req.user._id})
+        const quizCount = await Quiz.countDocuments({documentId: document._id,userId:req.user._id});
 
         
         const documentData = document.toObject();
