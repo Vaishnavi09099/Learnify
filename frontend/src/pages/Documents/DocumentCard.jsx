@@ -32,14 +32,14 @@ const DocumentCard = ({document,onDelete}) => {
 
  return(
    
-         <div onMouseEnter={()=>setIsHovered(true)} onMouseLeave={()=>setIsHovered(false)} className=' bg-white group cursor-pointer hover:shadow-lg hover:bg-green-100/20 hover:-translate-y-1 transition-all border border-transparent hover:border-green-300/30 duration-300 px-6 py-6 m-10 rounded-xl  '>
+         <div onClick={()=>navigate(`/documents/${document._id}`)} onMouseEnter={()=>setIsHovered(true)} onMouseLeave={()=>setIsHovered(false)} className=' bg-white group cursor-pointer hover:shadow-lg hover:bg-green-100/20 hover:-translate-y-1 transition-all border border-transparent hover:border-green-300/30 duration-300 px-6 py-6 m-10 rounded-xl  '>
         <div className='flex justify-between items-center'>
             <div className='bg-green-600/80 p-2 text-white font-bold rounded-xl  shadow-md mb-4'>
                  <FileText />
 
             </div>
             {isHovered &&(
-                 <div onClick= {handleDelete} className='text-red-500 font-semibold shadow-md rounded-md p-2 bg-red-200'>
+                 <div onClick= {(e)=>{e.stopPropagation(); handleDelete(e)}} className='text-red-500 font-semibold shadow-md rounded-md p-2 bg-red-200'>
                  <Trash2 size={20} />
 
             </div>
