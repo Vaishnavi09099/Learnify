@@ -41,7 +41,7 @@ const generateSummary = async(documentId)=>{
 
 const chat = async(documentId,message)=>{
     try{
-        const response = await axiosInstance.get(API_PATHS.AI.CHAT,{
+        const response = await axiosInstance.post(API_PATHS.AI.CHAT,{
             documentId,question:message
         });
         return response.data;
@@ -53,7 +53,7 @@ const chat = async(documentId,message)=>{
 }
 const explainConcept = async(documentId,concept)=>{
     try{
-        const response = await axiosInstance.get(API_PATHS.AI.EXPLAIN_CONCEPT,{documentId,concept});
+        const response = await axiosInstance.post(API_PATHS.AI.EXPLAIN_CONCEPT,{documentId,concept});
         return response.data;
 
     }catch(err){
@@ -75,7 +75,7 @@ const getChatHistory = async(documentId)=>{
 
 
 const aiService = {
-    genrateFlashcards,getChatHistory,explainConcept,updateProfile,chat,generateSummary,generateQuiz 
+    genrateFlashcards,getChatHistory,explainConcept,chat,generateSummary,generateQuiz 
 }
 
 export default aiService;

@@ -62,7 +62,10 @@ export const uploadDocument = async (req, res) => {
 const processPDF = async (documentId, filePath) => {
     try {
         const { text } = await extractTextFromPDF(filePath);
+         console.log("Text length:", text?.length);
         const chunks = chunkText(text, 500, 50);
+        console.log("Chunks type:", typeof chunks);  
+        console.log("Chunks length:", chunks?.length);
         await Document.findByIdAndUpdate(documentId, {
             extractedText: text,
             chunks: chunks,
@@ -211,3 +214,4 @@ export const deleteDocument = async (req, res) => {
         });
     }
 };
+

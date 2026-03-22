@@ -167,80 +167,74 @@ export const generateSummary = async (req,res,next)=>{
     }
 
 }
-export const chat = async (req,res,next)=>{
-      try{
-        const{documentId,question} = req.body;
-        if(!documentId || !question){
+export const chat = async (req, res, next) => {
+    try {
+        const { documentId, question } = req.body;
+        if (!documentId || !question) {
             return res.status(400).json({
-                success:false,
-                message:"Please provide document Id and question"
-            })
+                success: false,
+                message: "Please provide document Id and question"
+            });
         }
 
         const document = await Document.findOne({
-            _id:documentId,
-            userId:req.user._id,
-        
-        })
-        if(!document){
-            return res.status(404).json({
-                success:false,
-                message:"Document not found!"
-            })
+            _id: documentId,
+            userId: req.user._id,
+        }).lean(); 
+        if (!document) { 
+             return res.status(404).json({
+                success: false,
+                message: "Document not found!"
+            });
         }
 
-        const relevantChunks = findRelevantChunks(document.chunks,question,3);
-        const chunkIndices = relevantChunks.map(c=>c.chunkIndex);
+        
+        const relevantChunks = findRelevantChunks(document.chunks, question, 3);
+        const chunkIndices = relevantChunks.map(c => c.chunkIndex);
 
         let chatHistory = await ChatHistory.findOne({
-            userId:req.user._id,
-            documentId:document._id
+            userId: req.user._id,
+            documentId: document._id
         });
 
-        if(!chatHistory){
+        if (!chatHistory) {
             chatHistory = await ChatHistory.create({
-                userId:req.user._id,
-                documentId:document._id,
-                messages:[]
-            })
+                userId: req.user._id,
+                documentId: document._id,
+                messages: []
+            });
         }
 
-        const answer = await geminiService.chatWithContext(question,relevantChunks);
+        const answer = await geminiService.chatWithContext(question, relevantChunks);
+        
         chatHistory.messages.push({
-            role:'user',
-            content:question,
-            timestamp:new date(),
-            relevantChunks:[]
-        },{
-             role:'assistant',
-            content:answer,
-            timestamp:new date(),
-            relevantChunks:chunkIndices
-
-        })
+            role: 'user',
+            content: question,
+            timestamp: new Date(),
+            relevantChunks: []
+        }, {
+            role: 'assistant',
+            content: answer,
+            timestamp: new Date(),
+            relevantChunks: chunkIndices
+        });
+        
         await chatHistory.save();
 
-        
-    
-
         res.status(201).json({
-            success:true,
-            data:{
-                question,answer,relevantChunks:chunkIndices,chatHistoryId:chatHistory._id
+            success: true,
+            data: {
+                question, answer, relevantChunks: chunkIndices, chatHistoryId: chatHistory._id
             },
-            message:"Response generated successfully!"
-        })
+            message: "Response generated successfully!"
+        });
 
-
-    }catch(err){
-         res.status(400).json({
-            success:false,
-           
-            message:"Error generating Response!"
-        })
-
+    } catch (err) {
+        res.status(400).json({
+            success: false,
+            message: "Error generating Response!"
+        });
     }
-
 }
 export const explainConcept = async (req,res,next)=>{
       try{
@@ -265,7 +259,7 @@ export const explainConcept = async (req,res,next)=>{
         }
         
         const relevantChunks = findRelevantChunks(document.chunks,concept,3);
-        const context = relevantChunks.map(c=>c.content).join("\n\n")
+         const context = relevantChunks.map(c=>c.content).join("\n\n")
 
         const explanation = await geminiService.explainConcept(concept,context);
 
@@ -275,7 +269,7 @@ export const explainConcept = async (req,res,next)=>{
             data:{
                concept,
                explanation,
-               relevantChunks:relevantChunks.map(c=>chunkIndex)
+               relevantChunks:relevantChunks.map(c=>c.chunkIndex)
             },
             message:"Explanation genrated successfully!"
         })
@@ -298,14 +292,14 @@ export const explainConcept = async (req,res,next)=>{
 export const getChatHistory = async (req,res,next)=>{
      try{
         const{documentId} = req.params;
-        if(!documentId || !concept){
+        if(!documentId ){
             return res.status(400).json({
                 success:false,
                 message:"Please provide document Id and concept"
             })
         }
 
-        const chatHistory = await Document.findOne({
+        const chatHistory = await ChatHistory.findOne({
             userId:req.user._id,
             documentId
         

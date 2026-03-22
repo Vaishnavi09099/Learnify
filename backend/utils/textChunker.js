@@ -24,7 +24,7 @@ export const findRelevantChunks =(chunks,query,maxChunks=3)=>{
     const scoredChunks = chunks.map((chunk)=>{
         const content = chunk.content.toLowerCase();
         let score = 0;
-        queryWords.foreach(word=>{
+        queryWords.forEach(word=>{
             if(content.includes(word)){
                 score++;
             }
@@ -34,7 +34,13 @@ export const findRelevantChunks =(chunks,query,maxChunks=3)=>{
         return{...chunk,score}
 
     })
-    return scoredChunks.filter(chunk=>chunk.score>0).sort((a,b)=>b.score-a.score).slice(0,maxChunks)
+    const matched = scoredChunks
+    .filter(chunk => chunk.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, maxChunks);
+
+
+return matched.length > 0 ? matched : chunks.slice(0, maxChunks);
 
 }
-export default {chunkText,findRelevantChunks};
+export default chunkText;

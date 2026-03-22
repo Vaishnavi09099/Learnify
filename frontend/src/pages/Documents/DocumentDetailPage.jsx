@@ -7,7 +7,7 @@ import toast from 'react-hot-toast';
 import PageHeader from '../../components/common/PageHeader.jsx'
 import Tabs from '../../components/common/Tabs'
 import { ClipLoader } from 'react-spinners'
-
+import ChatInterface from '../../components/chat/ChatInterface.jsx'
 
 
 const DocumentDetailPage = () => {

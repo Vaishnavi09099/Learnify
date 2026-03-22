@@ -6,7 +6,7 @@ const { readFile } = fs.promises;
  export const extractTextFromPDF = async(filePath)=>{
     try{
 
-        const dataBuffer =await readFile(filePath);
+        const buffer =await readFile(filePath);
         const parser = new PDFParse({data:buffer});
         const data = await parser.getText();
         return{
