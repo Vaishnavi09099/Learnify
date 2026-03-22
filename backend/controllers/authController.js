@@ -124,7 +124,7 @@ export const getProfile =async (req,res)=>{
         })
 
     }catch(err){
-        return res.staus(500).json({
+        return res.status(500).json({
             success:false,
             message:"Error is there"
         })

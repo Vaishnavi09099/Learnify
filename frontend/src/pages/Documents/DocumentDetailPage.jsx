@@ -8,6 +8,7 @@ import PageHeader from '../../components/common/PageHeader.jsx'
 import Tabs from '../../components/common/Tabs'
 import { ClipLoader } from 'react-spinners'
 import ChatInterface from '../../components/chat/ChatInterface.jsx'
+import AIActions from '../../components/chat/AIActions.jsx'
 
 
 const DocumentDetailPage = () => {
@@ -93,7 +94,7 @@ const DocumentDetailPage = () => {
   }
 
   const renderAIActions=()=>{
-    return "render Ai action";
+    return <AIActions />;
   }
 
   const renderFlashCardsTab = ()=>{

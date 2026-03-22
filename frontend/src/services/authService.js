@@ -32,9 +32,11 @@ const register = async(username,email,password)=>{
 const getProfile = async()=>{
     try{
         const response = await axiosInstance.get(API_PATHS.AUTH.GET_PROFILE);
+       console.log("getProfile response:", response.data);
         return response.data;
 
     }catch(err){
+         console.log("getProfile error:", err.response);
     throw new Error(err.response?.data?.message || "Login failed! Please try again");
 }
 
