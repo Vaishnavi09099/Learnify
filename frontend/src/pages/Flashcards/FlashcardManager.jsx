@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Sparkles, ChevronLeft, ChevronRight, Trash2, Brain, BrainCircuit } from "lucide-react";
 import toast from "react-hot-toast";
-import flashcardService from "../../services/flashcardService";
+import flashcardService from "../../services/flashcardService.js";
 import aiService from "../../services/aiService";
 import { RotateCcw } from "lucide-react"
 
