@@ -3,7 +3,7 @@ import axiosInstance from "../utils/axiosInstance.js";
 
 const getAllFlashcardSets = async ()=>{
     try{
-        const response = await axiosInstance.post(API_PATHS.FLASHCARDS.GET_ALL_FLASHCARD_SETS)
+        const response = await axiosInstance.get(API_PATHS.FLASHCARDS.GET_ALL_FLASHCARD_SETS)
 
         return response.data;
 

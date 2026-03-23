@@ -74,11 +74,11 @@ const QuizManager = ({ documentId }) => {
     };
 
     const handleStartQuiz = (quizId) => {
-        navigate(`/quiz/${quizId}/take`);
+        navigate(`/quizzes/${quizId}/take`);
     };
 
     const handleViewResults = (quizId) => {
-        navigate(`/quiz/${quizId}/results`);
+        navigate(`/quizzes/${quizId}/results`);
     };
 
    

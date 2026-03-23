@@ -4,7 +4,7 @@ import {useAuth} from '../../context/AuthContext.jsx';
 import authService from '../../services/authService.js';
 import toast from 'react-hot-toast'
 
-import {BrainCircuit,Mail,Lock,ArrowRight,User2Icon} from 'lucide-react'
+import {BrainCircuit,Mail,Lock,ArrowRight,User2Icon,Eye,EyeOff} from 'lucide-react'
 
 const RegisterPage = ()=>{
   const [email,setEmail] = useState('');
@@ -12,6 +12,7 @@ const RegisterPage = ()=>{
   const [password,setPassword] = useState('');
   const [error,setError] = useState('');
   const [loading,setLoading] = useState(false);
+  const [showPassword,setShowPassword] = useState(false);
   
 
   const navigate = useNavigate();
@@ -43,9 +44,8 @@ const RegisterPage = ()=>{
         <div className='text-center  flex items-center justify-center'>
           <div className='bg-green-700 p-3 shadow-xl mb-3 rounded-xl text-white'>
             <BrainCircuit />
-
           </div>
-           </div>
+        </div>
           <h1 className='text-xl font-bold '>Create an account</h1>
           <p className='text-sm text-gray-700 mb-8'>Start your AI-powered learning experience</p>
 
@@ -54,30 +54,35 @@ const RegisterPage = ()=>{
           <div className='flex mb-5 border border-gray-200 focus-within:border-green-400 transition p-2 rounded-xl'>
             <span className='text-gray-500'><User2Icon /></span>
             <input className='ml-3 outline-none w-full' 
-            
             placeholder='Enter your username'
             type='text'
             onChange={(e)=>setUsername(e.target.value)}
             ></input>
           </div>
+
           <label className=' block text-left text-sm mb-1'>EMAIL</label>
           <div className='flex mb-5 border border-gray-200 focus-within:border-green-400 transition p-2 rounded-xl'>
             <span className='text-gray-500'><Mail /></span>
             <input className='ml-3 outline-none w-full' 
-            
             placeholder='Enter your email'
             type='email'
             onChange={(e)=>setEmail(e.target.value)}
             ></input>
           </div>
+
           <label className='block text-left text-sm mb-1'>PASSWORD</label>
-         
-          <div className='flex mb-5 border border-gray-200 focus-within:border-green-400 p-2 rounded-xl'>
+          <div className='flex mb-5 border border-gray-200 focus-within:border-green-400 transition p-2 rounded-xl items-center'>
             <span className='text-gray-500'><Lock /></span>
-            <input className='ml-3 outline-none' 
+            <input className='ml-3 outline-none w-full' 
             placeholder='Enter your password'
-            
+            type={showPassword ? 'text' : 'password'}
             onChange={(e)=>setPassword(e.target.value)}></input>
+            <span 
+              className='text-gray-400 cursor-pointer hover:text-green-600 transition ml-2'
+              onClick={()=>setShowPassword(!showPassword)}
+            >
+              {showPassword ? <EyeOff className='w-4 h-4'/> : <Eye className='w-4 h-4'/>}
+            </span>
           </div>
 
           {error &&(
@@ -96,24 +101,19 @@ const RegisterPage = ()=>{
                 <div className='flex justify-center items-center'>Create account<p className=''><ArrowRight className='w-5 h-4' strokeWidth={3}/></p></div>
               )}
             </button>
-            
-            
           </div>
-          < hr className='my-8 text-gray-200 '/>
+
+          <hr className='my-8 text-gray-200 '/>
           <div className='flex justify-center items-center mt-3' >
             <p className='text-gray-500'>Already have an account? </p>
           <Link to='/login' className='text-green-600  hover:underline ml-1 font-semibold'>Sign in</Link>
          </div>
-
-        
-       
 
       </div>
        <p className='text-gray-600 text-xs mt-5 '>By continuing, you agree to our Terms & Privacy Policy</p>
           
     </div>
   )
-
 }
 
 export default RegisterPage;
