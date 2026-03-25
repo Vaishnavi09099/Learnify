@@ -114,7 +114,7 @@ const detailedResults = results?.results ?? [];
                 {getScoreMessage(score)} 
               </p>
             </div>
-         {/* Score Card ke andar, stats row ke baad */}
+     
 <div className="flex gap-4 pt-8 justify-center">
   <button
     onClick={() => navigate(`/quizzes/${quizId}/take`)}
