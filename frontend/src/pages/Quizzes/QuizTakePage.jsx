@@ -54,23 +54,24 @@ const QuizTakePage = () => {
     };
 
     
-    const handleSubmitQuiz = async () => {
-        setSubmitting(true);
-        try {
-            const answers = Object.keys(selectedAnswers).map((questionId) => ({
-                questionId,
-                selectedOption: selectedAnswers[questionId],
-            }));
-            await quizService.submitQuiz(quizId, answers);
-            toast.success('Quiz submitted!');
-            navigate(`/quizzes/${quizId}/results`);
-        } catch (error) {
-            toast.error('Failed to submit quiz.');
-            console.error(error);
-        } finally {
-            setSubmitting(false);
-        }
-    };
+  const handleSubmitQuiz = async () => {
+    setSubmitting(true);
+    try {
+        const answers = quiz.questions.map((question, index) => ({
+            questionIndex: index,                           
+            selectedAnswer: question.options[selectedAnswers[question._id]] ?? null 
+        }));
+
+        await quizService.submitQuiz(quizId, answers);
+        toast.success('Quiz submitted!');
+        navigate(`/quizzes/${quizId}/results`);
+    } catch (error) {
+        toast.error('Failed to submit quiz.');
+        console.error(error);
+    } finally {
+        setSubmitting(false);
+    }
+};
 
    
     if (loading) {

@@ -46,10 +46,11 @@ export const getQuizById = async(req, res, next) => {
     }
 }
 
-export const submitQuiz = async(req, res, next) => {
+export const submitQuiz = async (req, res, next) => {
     try {
-        const {answers} = req.body;
-        if(!Array.isArray(answers)) {
+        const { answers } = req.body;
+
+        if (!Array.isArray(answers)) {
             return res.status(400).json({
                 success: false,
                 message: "Please provide answers array"
@@ -61,15 +62,15 @@ export const submitQuiz = async(req, res, next) => {
             userId: req.user._id
         });
 
-        if(!quiz) {
+        if (!quiz) {
             return res.status(404).json({
                 success: false,
                 error: "Quiz not found"
             });
         }
 
-        // Reset karo agar pehle complete ho chuki hai (retake allow)
-        if(quiz.completedAt) {
+        // reset if retake
+        if (quiz.completedAt) {
             quiz.completedAt = null;
             quiz.userAnswers = [];
             quiz.score = 0;
@@ -81,11 +82,20 @@ export const submitQuiz = async(req, res, next) => {
         answers.forEach(answer => {
             const { questionIndex, selectedAnswer } = answer;
 
-            if(questionIndex < quiz.questions.length) {
+            if (questionIndex < quiz.questions.length) {
                 const question = quiz.questions[questionIndex];
-                const isCorrect = selectedAnswer === question.correctAnswer;
 
-                if(isCorrect) correctCount++;
+                const correctRaw = String(question.correctAnswer).trim();
+
+                // ✅ "03:Mango" se sirf text nikalo
+                const correctAnswerText = correctRaw.includes(':')
+                    ? correctRaw.split(':').slice(1).join(':').trim()
+                    : correctRaw;
+
+                const isCorrect = String(selectedAnswer).trim().toLowerCase() ===
+                                  correctAnswerText.toLowerCase();
+
+                if (isCorrect) correctCount++;
 
                 userAnswers.push({
                     questionIndex,
@@ -96,7 +106,12 @@ export const submitQuiz = async(req, res, next) => {
             }
         });
 
-        const score = Math.round((correctCount / quiz.totalQuestions) * 100);
+        const total = quiz.totalQuestions || quiz.questions.length;
+
+        const score = total > 0
+            ? Math.round((correctCount / total) * 100)
+            : 0;
+
         quiz.userAnswers = userAnswers;
         quiz.score = score;
         quiz.completedAt = new Date();
@@ -109,20 +124,21 @@ export const submitQuiz = async(req, res, next) => {
                 quizId: quiz._id,
                 score,
                 correctCount,
-                totalQuestions: quiz.totalQuestions,
+                totalQuestions: total,
                 percentage: score,
                 userAnswers
             },
             message: "Quiz submitted successfully!"
         });
 
-    } catch(err) {
-        return res.status(400).json({
+    } catch (err) {
+        console.log(err);
+        return res.status(500).json({
             success: false,
             message: "Quiz not submitted successfully!"
         });
     }
-}
+};
 
 export const getQuizResults = async(req, res, next) => {
     try {
@@ -146,7 +162,7 @@ export const getQuizResults = async(req, res, next) => {
         }
 
         const detailedResults = quiz.questions.map((question, index) => {
-           const userAnswer = quiz.userAnswers.find(a => Number(a.questionIndex) === Number(index))
+            const userAnswer = quiz.userAnswers.find(a => Number(a.questionIndex) === Number(index))
             return {
                 questionIndex: index,
                 question: question.question,
