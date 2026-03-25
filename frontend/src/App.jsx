@@ -6,7 +6,7 @@ import LoginPage from './pages/Auth/LoginPage';
 import DashboardPage from './pages/Dashboard/DashboardPage';
 import DocumentListPage from './pages/Documents/DocumentListPage';
 import DocumentDetailPage from './pages/Documents/DocumentDetailPage';
-import FlashcardsListPage from './pages/Flashcards/FlashcardsListPage';
+
 import FlashCardPage from './pages/Flashcards/FlashCardPage';
 import QuizResultPage from './pages/Quizzes/QuizResultPage';
 import QuizTakePage from './pages/Quizzes/QuizTakePage';
@@ -43,8 +43,6 @@ const App = () => {
                 <Route path="/documents" element={isAuthenticated ? <DocumentListPage /> : <Navigate to="/login" replace />} />
 
                 <Route path="/documents/:id" element={isAuthenticated ? <DocumentDetailPage /> : <Navigate to="/login" replace />} />
-
-                <Route path="/flashcards" element={isAuthenticated ? <FlashcardsListPage /> : <Navigate to="/login" replace />} />
 
                 <Route path="/documents/:id/flashcards" element={isAuthenticated ? <FlashCardPage /> : <Navigate to="/login" replace />} />
 

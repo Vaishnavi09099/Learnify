@@ -15,7 +15,7 @@ const SideBar = ({isSidebarOpen,toggleSidebar}) => {
     const navLinks = [
         {to:'/dashboard',icon:LayoutDashboard,text:'Dashboard'},
         {to:'/documents',icon:FileText,text:'Documents'},
-        {to:'/flashcards',icon:BookOpen,text:'Flashcards'},
+    
         {to:'/profile',icon:User,text:'Profile'},
         
     ]
@@ -56,10 +56,13 @@ const SideBar = ({isSidebarOpen,toggleSidebar}) => {
       </div>
 
 
-      <div className='flex items-center absolute bottom-6 px-8'>
-        <LogOut size={18} strokeWidth={2.5}/>
-        <p className='ml-2 font-semibold '>Logout</p>
-      </div>
+      <div 
+  onClick={handleLogout}
+  className='flex items-center absolute bottom-6 px-8 cursor-pointer hover:text-red-500'
+>
+  <LogOut size={18} strokeWidth={2.5}/>
+  <p className='ml-2 font-semibold'>Logout</p>
+</div>
 
      </div>
      
