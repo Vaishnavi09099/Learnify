@@ -8,10 +8,8 @@ import chunkText from "../utils/textChunker.js";
 
 export const uploadDocument = async (req, res) => {
     try {
-          
         if (!req.file) {
             return res.status(400).json({
-                
                 success: false,
                 message: "Please upload a PDF file",
             });
@@ -19,7 +17,6 @@ export const uploadDocument = async (req, res) => {
 
         const { title } = req.body;
         if (!title) {
-       
             await cloudinary.uploader.destroy(req.file.filename, { resource_type: 'raw' });
             return res.status(400).json({
                 success: false,
@@ -27,18 +24,21 @@ export const uploadDocument = async (req, res) => {
             });
         }
 
-    
+        const originalPath = req.file.path;  // ✅ text extract ke liye
+        const inlinePath = req.file.path.includes('/upload/')
+            ? req.file.path.replace('/upload/', '/upload/fl_inline/')
+            : req.file.path;  // ✅ safe replace
+
         const document = await Document.create({
             userId: req.user?._id,
             title,
             fileName: req.file.originalname,
-            filePath: req.file.path,   
+            filePath: inlinePath,   // ✅ inline URL DB mein save hoga
             fileSize: req.file.size,
-            status: 'processing'   
+            status: 'processing'
         });
 
-
-        processPDF(document._id, req.file.path).catch(err => {
+        processPDF(document._id, originalPath).catch(err => {  // ✅ original URL se text extract
             console.log("PDF processing error: ", err);
         });
 
@@ -49,18 +49,17 @@ export const uploadDocument = async (req, res) => {
         });
 
     } catch (err) {
-        console.error("Upload error:", err);  
+        console.error("Upload error:", err);
         return res.status(500).json({
             success: false,
             message: "PDF upload failed!",
-            error: err.message    
+            error: err.message
         });
     }
 };
 
 const processPDF = async (documentId, filePath) => {
     try {
-     
         const { text } = await extractTextFromPDF(filePath);
         console.log("Text length:", text?.length);
         const chunks = chunkText(text, 500, 50);
@@ -89,7 +88,7 @@ export const getDocuments = async (req, res) => {
             },
             {
                 $lookup: {
-                    from: 'flashcardsets',   
+                    from: 'flashcardsets',
                     localField: '_id',
                     foreignField: 'documentId',
                     as: 'flashcardSets'
@@ -105,7 +104,7 @@ export const getDocuments = async (req, res) => {
             },
             {
                 $addFields: {
-                    flashcardCount: { $size: '$flashcardSets' }, 
+                    flashcardCount: { $size: '$flashcardSets' },
                     quizCount: { $size: '$quizzes' }
                 }
             },
@@ -129,7 +128,7 @@ export const getDocuments = async (req, res) => {
         });
 
     } catch (err) {
-        console.error("getDocuments error:", err);   
+        console.error("getDocuments error:", err);
         return res.status(500).json({
             success: false,
             message: "Error fetching documents!",
@@ -162,7 +161,7 @@ export const getDocument = async (req, res) => {
         });
 
         const documentData = document.toObject();
-        documentData.flashcardCount = flashcardCount;  
+        documentData.flashcardCount = flashcardCount;
         documentData.quizCount = quizCount;
 
         return res.status(200).json({
@@ -194,7 +193,6 @@ export const deleteDocument = async (req, res) => {
             });
         }
 
-     
         if (document.filePath) {
             const publicId = `cognify-uploads/${document.fileName}`;
             await cloudinary.uploader.destroy(publicId, { resource_type: 'raw' })
