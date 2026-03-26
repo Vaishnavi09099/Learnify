@@ -10,14 +10,13 @@ cloudinary.config({
 });
 
 
+
 const storage = new CloudinaryStorage({
     cloudinary: cloudinary,
     params: {
         folder: "cognify-uploads",
         allowed_formats: ["pdf"],
-      resource_type: "auto",
-         flags: "attachment:false", 
-
+        resource_type: "raw", 
     },
 });
 
