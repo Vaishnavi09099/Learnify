@@ -15,7 +15,7 @@ const storage = new CloudinaryStorage({
     params: {
         folder: "cognify-uploads",
         allowed_formats: ["pdf"],
-        resource_type: "raw", 
+      resource_type: "auto",
          flags: "attachment:false", 
 
     },

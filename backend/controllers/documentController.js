@@ -29,14 +29,14 @@ export const uploadDocument = async (req, res) => {
             ? req.file.path.replace('/upload/', '/upload/fl_inline/')
             : req.file.path;  // ✅ safe replace
 
-        const document = await Document.create({
-            userId: req.user?._id,
-            title,
-            fileName: req.file.originalname,
-            filePath: inlinePath,   // ✅ inline URL DB mein save hoga
-            fileSize: req.file.size,
-            status: 'processing'
-        });
+       const document = await Document.create({
+    userId: req.user?._id,
+    title,
+    fileName: req.file.originalname,
+    filePath: req.file.path,  
+    fileSize: req.file.size,
+    status: 'processing'
+});
 
         processPDF(document._id, originalPath).catch(err => {  // ✅ original URL se text extract
             console.log("PDF processing error: ", err);

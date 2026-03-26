@@ -34,19 +34,12 @@ const DocumentDetailPage = () => {
     fetchDocumentDetails();
   },[id]);
 
-  const getPdfUrl = () => {
+ const getPdfUrl = () => {
   if (!document?.data?.filePath) return null;
   const filePath = document.data.filePath;
-
   if (filePath.startsWith('http://') || filePath.startsWith('https://')) {
-    if (filePath.includes('cloudinary.com')) {
-      return filePath
-        .replace('/raw/upload/', '/image/upload/')  
-        .replace('/upload/', '/upload/fl_inline/');  
-    }
     return filePath;
   }
-
   const baseurl = 'http://localhost:5000';
   return `${baseurl}${filePath.startsWith('/') ? '' : '/'}${filePath}`;
 };
