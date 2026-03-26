@@ -73,7 +73,8 @@ const DocumentDetailPage = () => {
         </div>
         <div className='border rounded-b-lg p-1 border-gray-400/60 flex-1'>
           <iframe
-          src={pdfUrl}
+       
+src={`https://docs.google.com/viewer?url=${encodeURIComponent(pdfUrl)}&embedded=true`}
           className='w-full h-full'
           title='PDF Viewer'
          
