@@ -8,9 +8,10 @@ import chunkText from "../utils/textChunker.js";
 
 export const uploadDocument = async (req, res) => {
     try {
+          
         if (!req.file) {
             return res.status(400).json({
-                  console.log("req.file:", req.file);
+                
                 success: false,
                 message: "Please upload a PDF file",
             });
