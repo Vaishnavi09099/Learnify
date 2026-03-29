@@ -11,13 +11,17 @@ if(!process.env.GEMINI_API_KEY){
 }
 
 export const generateFlashCards = async(text,count=10)=>{
+    const safeText = text && String(text).trim();
+    if (!safeText) {
+        throw new Error("Provided text is empty");
+    }
     const prompt = `Generate exactly ${count} educational flashcards from the following text.
     Format each flashcard as:
     Q:[Clear,specific question]
     A:[Concise,accurate answer]
     D:[Difficulty level:easy,medium or hard]
     Separate each flashcard with "---"
-    Text: ${text.substring(0,15000)}`;
+    Text: ${safeText.substring(0,15000)}`;
 
     try{
         const response = await ai.models.generateContent({
@@ -57,6 +61,10 @@ export const generateFlashCards = async(text,count=10)=>{
 
 
 export const generateQuiz = async(text,numQuestions = 5)=>{
+    const safeText = text && String(text).trim();
+    if (!safeText) {
+        throw new Error("Provided text is empty");
+    }
     const prompt = `Generate exactly ${numQuestions} multiple choice questions from the following text.
     Format each question as:
     Q: [Question],
@@ -69,7 +77,7 @@ export const generateQuiz = async(text,numQuestions = 5)=>{
     D:[Difficulty:easy,medium,or hard]
     Separate questions with "---"
     
-    Text:${text.substring(0,15000)}`;
+    Text:${safeText.substring(0,15000)}`;
 
     try{
         const response = await ai.models.generateContent({
@@ -119,8 +127,12 @@ export const generateQuiz = async(text,numQuestions = 5)=>{
 
 
 export const generateSummary = async(text)=>{
+    const safeText = text && String(text).trim();
+    if (!safeText) {
+        throw new Error("Provided text is empty");
+    }
     const prompt = `Provide a concise summary of the following text ,highlighting the key concepts,main ideas and important points.Keep the summary clear and structured
-    Text: ${text.substring(0,20000)}
+    Text: ${safeText.substring(0,20000)}
     `
 
     try{
@@ -145,8 +157,45 @@ export const generateSummary = async(text)=>{
 }
 
 export const chatWithContext = async(question,chunks)=>{
+    if (!question || !String(question).trim()) {
+        throw new Error("Question is empty");
+    }
 
-    const context = chunks.map((c,i)=>`[Chunk ${i+1}]\n${c.content}`).join('\n\n');
+    if (!Array.isArray(chunks)) {
+        chunks = [];
+    }
+
+    // Normalize possible chunk shapes:
+    // - expected: { content, chunkIndex }
+    // - legacy/fallback: { text }
+    const normalizedChunks = chunks.map((c) => {
+        const content =
+            c && (c.content ?? c.text) !== undefined
+                ? String(c.content ?? c.text)
+                : "";
+        return { content };
+    });
+
+    const nonEmptyChunks = normalizedChunks.filter((c) => c.content.trim().length > 0);
+
+    const context = nonEmptyChunks
+        .map((c, i) => `[Chunk ${i + 1}]\n${c.content}`)
+        .join('\n\n');
+
+    if (!context.trim()) {
+        console.log("⚠️ Gemini chat context is empty; skipping model call", {
+            questionPreview: String(question).slice(0, 80),
+            chunksTotal: chunks.length,
+            chunksNonEmpty: nonEmptyChunks.length
+        });
+        return "I couldn't find any extractable text in this document to answer your question.";
+    }
+
+    console.log("🤖 Gemini chat prompt context lengths", {
+        questionLen: String(question).length,
+        contextLen: context.length,
+        chunksUsed: nonEmptyChunks.length
+    });
 
     const prompt = `Based on the following context from a document,Analyse the context and answer the user's question.If the answer is not in the context ,say so
     Context: ${context}
@@ -176,8 +225,22 @@ export const chatWithContext = async(question,chunks)=>{
     }
 }
 export const explainConcept = async (concept, context) => {
-    const prompt = `Explain the concept of ${concept} based on the following context. Provide a clear, educational explanation that's easy to understand. Include examples if relevant.
-    Context: ${context.substring(0, 10000)}`
+    const safeConcept = concept && String(concept).trim();
+    const safeContext = context && String(context).trim();
+
+    if (!safeConcept) {
+        throw new Error("Concept is empty");
+    }
+
+    if (!safeContext) {
+        console.log("⚠️ Gemini explainConcept called with empty context", {
+            conceptPreview: safeConcept.slice(0, 80)
+        });
+        return "I couldn't find any extractable text in this document to explain that concept.";
+    }
+
+    const prompt = `Explain the concept of ${safeConcept} based on the following context. Provide a clear, educational explanation that's easy to understand. Include examples if relevant.
+    Context: ${safeContext.substring(0, 10000)}`
 
     try {
         const response = await ai.models.generateContent({

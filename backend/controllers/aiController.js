@@ -29,8 +29,17 @@ export const generateFlashCards =async  (req,res,next)=>{
             })
         }
 
+        const extractedText = typeof document.extractedText === "string" ? document.extractedText.trim() : "";
+        if (!extractedText) {
+            console.log("⚠️ generateFlashCards: empty extractedText", { documentId });
+            return res.status(400).json({
+                success: false,
+                message: "Document has no extracted text to generate flashcards."
+            });
+        }
+
         const cards = await geminiService.generateFlashCards(
-            document.extractedText,parseInt(count)
+            extractedText,parseInt(count)
         )
 
         const flashcardset = await FlashCard.create({
@@ -83,9 +92,18 @@ export const generateQuiz= async (req,res,next)=>{
                 message:"Document not found!"
             })
         }
+
+        const extractedText = typeof document.extractedText === "string" ? document.extractedText.trim() : "";
+        if (!extractedText) {
+            console.log("⚠️ generateQuiz: empty extractedText", { documentId });
+            return res.status(400).json({
+                success: false,
+                message: "Document has no extracted text to generate a quiz."
+            });
+        }
         
         const questions = await geminiService.generateQuiz(
-            document.extractedText,parseInt(numQuestions)
+            extractedText,parseInt(numQuestions)
         )
 
         const quiz = await Quiz.create({
@@ -141,9 +159,18 @@ export const generateSummary = async (req,res,next)=>{
                 message:"Document not found!"
             })
         }
+
+        const extractedText = typeof document.extractedText === "string" ? document.extractedText.trim() : "";
+        if (!extractedText) {
+            console.log("⚠️ generateSummary: empty extractedText", { documentId });
+            return res.status(400).json({
+                success: false,
+                message: "Document has no extracted text to generate a summary."
+            });
+        }
         
         const summary = await geminiService.generateSummary(
-            document.extractedText)
+            extractedText)
 
 
         res.status(200).json({
@@ -170,27 +197,70 @@ export const generateSummary = async (req,res,next)=>{
 export const chat = async (req, res, next) => {
     try {
         const { documentId, question } = req.body;
-        if (!documentId || !question) {
+        if (!documentId || !question || !String(question).trim()) {
             return res.status(400).json({
                 success: false,
                 message: "Please provide document Id and question"
             });
         }
 
-        const document = await Document.findOne({
-            _id: documentId,
-            userId: req.user._id,
-        }).lean(); 
-        if (!document) { 
-             return res.status(404).json({
+       const document = await Document.findOne({
+    _id: documentId,
+    userId: req.user._id,
+}).lean();
+
+// ✅ PEHLE null check
+if (!document) {
+    return res.status(404).json({
+        success: false,
+        message: "Document not found!"
+    });
+}
+
+// ✅ PHIR status check
+if (document.status !== 'ready') {
+    return res.status(400).json({
+        success: false,
+        message: "Document is still processing. Please wait."
+    });
+}
+
+        const hasText = typeof document.extractedText === "string" && document.extractedText.trim().length > 0;
+        const hasChunks = Array.isArray(document.chunks) && document.chunks.length > 0;
+        if (!hasText && !hasChunks) {
+            console.log("⚠️ Chat aborted: document has no extracted text/chunks", {
+                documentId,
+                extractedTextLen: document.extractedText?.length,
+                chunksLen: document.chunks?.length
+            });
+            return res.status(400).json({
                 success: false,
-                message: "Document not found!"
+                message: "Document has no extracted text to answer from yet."
             });
         }
 
         
         const relevantChunks = findRelevantChunks(document.chunks, question, 3);
         const chunkIndices = relevantChunks.map(c => c.chunkIndex);
+
+        let contextChunks = relevantChunks;
+
+if (!contextChunks || contextChunks.length === 0) {
+    console.log("⚠️ No relevant chunks found, using full text fallback");
+
+    contextChunks = [{
+        // `geminiService.chatWithContext` expects `content`, not `text`.
+        content: document.extractedText || "No content available"
+    }];
+}
+
+        const contextPreviewLen = contextChunks?.[0]?.content?.toString()?.trim()?.length ?? 0;
+        console.log("🧠 chat context build", {
+            questionPreview: String(question).slice(0, 80),
+            relevantChunksLen: relevantChunks?.length ?? 0,
+            contextChunksLen: contextChunks?.length ?? 0,
+            firstChunkContentLen: contextPreviewLen
+        });
 
         let chatHistory = await ChatHistory.findOne({
             userId: req.user._id,
@@ -205,7 +275,8 @@ export const chat = async (req, res, next) => {
             });
         }
 
-        const answer = await geminiService.chatWithContext(question, relevantChunks);
+        // const answer = await geminiService.chatWithContext(question, relevantChunks);
+        const answer = await geminiService.chatWithContext(question, contextChunks);
         
         chatHistory.messages.push({
             role: 'user',
@@ -239,7 +310,7 @@ export const chat = async (req, res, next) => {
 export const explainConcept = async (req, res, next) => {
     try {
         const { documentId, concept } = req.body;
-        if (!documentId || !concept) {
+        if (!documentId || !concept || !String(concept).trim()) {
             return res.status(400).json({
                 success: false,
                 message: "Please provide document Id and concept"
@@ -257,8 +328,17 @@ export const explainConcept = async (req, res, next) => {
             })
         }
 
+        const extractedText = typeof document.extractedText === "string" ? document.extractedText.trim() : "";
+        if (!extractedText) {
+            console.log("⚠️ explainConcept: empty extractedText", { documentId });
+            return res.status(400).json({
+                success: false,
+                message: "Document has no extracted text to explain concepts."
+            });
+        }
+
         // ✅ chunks ki jagah extractedText use karo
-        const explanation = await geminiService.explainConcept(concept, document.extractedText);
+        const explanation = await geminiService.explainConcept(concept, extractedText);
 
         res.status(200).json({
             success: true,

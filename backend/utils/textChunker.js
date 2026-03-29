@@ -1,28 +1,25 @@
-export const chunkText =(text,chunkSize=300,overlap=50)=>{
-    if(!text || text.trim().length==0) return [];
-    const cleanedText = text.replace(/\n/g,"").trim();
-    const words = cleanedText.split(/\s+/)
-    const chunks = []
-    for(let i=0;i<words.length;i+=(chunkSize-overlap)){
-        const chunkWords = words.slice(i,i+chunkSize);
+export const chunkText = (text, chunkSize = 300, overlap = 50) => {
+    if (!text || text.trim().length == 0) return [];
+    const cleanedText = text.replace(/\n/g, " ").trim();
+    const words = cleanedText.split(/\s+/);
+    const chunks = [];
+    
+    for (let i = 0; i < words.length; i += (chunkSize - overlap)) {
+        const chunkWords = words.slice(i, i + chunkSize);
         chunks.push({
-            content:chunkWords.join(" "),
-            chunkIndex:chunks.length
-
-
-        })
-
+            content: chunkWords.join(" "),
+            chunkIndex: chunks.length,
+            pageNumber: 1  // ✅ pdf-parse page tracking nahi karta easily, default 1 rakho
+        });
     }
     return chunks;
-
-
-}
+};
 
 export const findRelevantChunks =(chunks,query,maxChunks=3)=>{
     if(!chunks || chunks.length === 0 || !query) return [];
     const queryWords = query.toLowerCase().split(/\s+/);
     const scoredChunks = chunks.map((chunk)=>{
-        const content = chunk.content.toLowerCase();
+        const content = (chunk?.content ?? chunk?.text ?? '').toLowerCase();
         let score = 0;
         queryWords.forEach(word=>{
             if(content.includes(word)){

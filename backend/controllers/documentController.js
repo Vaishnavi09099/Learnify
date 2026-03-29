@@ -1,11 +1,55 @@
-import mongoose from 'mongoose';                         
+import mongoose from 'mongoose';
 import { v2 as cloudinary } from 'cloudinary';
-import Document from '../models/Document.js';            
-import FlashCard from '../models/FlashCard.js';          
-import Quiz from '../models/Quiz.js';                    
+import Document from '../models/Document.js';
+import FlashCard from '../models/FlashCard.js';
+import Quiz from '../models/Quiz.js';
 import { extractTextFromPDF } from "../utils/pdfParser.js";
 import chunkText from "../utils/textChunker.js";
+import fs from "fs";
 
+export const processPDF = async (documentId, buffer) => {
+    try {
+        console.log("📦 BUFFER SIZE:", buffer?.length);
+
+        if (!buffer || buffer.length === 0) {
+            throw new Error("Buffer empty");
+        }
+
+        const result = await extractTextFromPDF(buffer);
+
+        console.log("📄 RAW RESULT:", result?.text?.slice(0, 200));
+
+        const text = result?.text?.trim() || "";
+
+        console.log("📏 TEXT LENGTH:", text.length);
+
+        if (!text || text.length < 50) {
+            throw new Error("PDF text extraction failed");
+        }
+
+        const chunks = chunkText(text, 500, 50);
+
+        console.log("🧩 CHUNKS:", chunks.length);
+
+        await Document.findByIdAndUpdate(documentId, {
+            extractedText: text,
+            chunks,
+            status: "ready",
+        });
+
+        console.log("✅ SAVED SUCCESSFULLY");
+
+    } catch (err) {
+        console.log("❌ ERROR:", err.message);
+
+        await Document.findByIdAndUpdate(documentId, {
+            status: "failed",
+        });
+    }
+};
+
+// ✅ UPLOAD DOCUMENT
+// ✅ UPLOAD DOCUMENT
 export const uploadDocument = async (req, res) => {
     try {
         if (!req.file) {
@@ -16,31 +60,61 @@ export const uploadDocument = async (req, res) => {
         }
 
         const { title } = req.body;
+
         if (!title) {
-            await cloudinary.uploader.destroy(req.file.filename, { resource_type: 'raw' });
             return res.status(400).json({
                 success: false,
                 message: "Please provide a document title"
             });
         }
 
-        const document = await Document.create({
-            userId: req.user?._id,
-            title,
-            fileName: req.file.originalname,
-            filePath: req.file.path,  // ✅ as-is, koi transform nahi
-            fileSize: req.file.size,
-            status: 'processing'
+        // ✅ BUFFER (IMPORTANT 🔥)
+        const buffer = req.file.buffer;
+
+        console.log("📦 Buffer received, size:", buffer.length);
+
+        // ✅ Create document (NO localPath now ❌)
+       const document = await Document.create({
+    userId: req.user?._id,
+    title,
+    fileName: req.file.originalname,
+    fileSize: req.file.size,
+    filePath: "pending",  // ✅ placeholder, baad mein cloudinary URL se update hoga
+    status: 'processing'
+});
+
+        // ✅ 1. PROCESS PDF (buffer se)
+        await processPDF(document._id, buffer);
+
+        // ✅ 2. Upload to Cloudinary (buffer se)
+        const uploadResult = await new Promise((resolve, reject) => {
+            const stream = cloudinary.uploader.upload_stream(
+                {
+                    resource_type: "raw",
+                    folder: "cognify-uploads"
+                },
+                (error, result) => {
+                    if (error) return reject(error);
+                    resolve(result);
+                }
+            );
+
+            stream.end(buffer);
         });
 
-        processPDF(document._id, req.file.path).catch(err => {
-            console.log("PDF processing error: ", err);
-        });
+        console.log("☁️ Cloudinary URL:", uploadResult.secure_url);
+
+        // ✅ 3. Save Cloudinary URL
+       // ✅ 3. Save Cloudinary URL
+await Document.findByIdAndUpdate(document._id, {
+    cloudinaryUrl: uploadResult.secure_url,
+    filePath: uploadResult.secure_url  // ✅ ADD THIS LINE
+});
 
         return res.status(201).json({
             success: true,
             data: document,
-            message: "Document uploaded successfully. Processing in progress"
+            message: "Document uploaded & processed successfully"
         });
 
     } catch (err) {
@@ -53,28 +127,10 @@ export const uploadDocument = async (req, res) => {
     }
 };
 
-const processPDF = async (documentId, filePath) => {
-    try {
-        const { text } = await extractTextFromPDF(filePath);
-        console.log("Text length:", text?.length);
-        const chunks = chunkText(text, 500, 50);
-        console.log("Chunks length:", chunks?.length);
+// ✅ PROCESS PDF
 
-        await Document.findByIdAndUpdate(documentId, {
-            extractedText: text,
-            chunks: chunks,
-            status: 'ready',
-        });
-        console.log(`Document ${documentId} processed successfully`);
 
-    } catch (err) {
-        console.log(`Error processing document ${documentId}:`, err);
-        await Document.findByIdAndUpdate(documentId, {
-            status: 'failed'
-        });
-    }
-};
-
+// ✅ GET ALL DOCUMENTS
 export const getDocuments = async (req, res) => {
     try {
         const documents = await Document.aggregate([
@@ -116,7 +172,7 @@ export const getDocuments = async (req, res) => {
             }
         ]);
 
-        return res.status(200).json({
+        res.status(200).json({
             success: true,
             count: documents.length,
             data: documents
@@ -124,14 +180,16 @@ export const getDocuments = async (req, res) => {
 
     } catch (err) {
         console.error("getDocuments error:", err);
-        return res.status(500).json({
+        res.status(500).json({
             success: false,
-            message: "Error fetching documents!",
-            error: err.message
+            message: "Error fetching documents!"
         });
     }
 };
 
+
+
+// ✅ GET SINGLE DOCUMENT
 export const getDocument = async (req, res) => {
     try {
         const document = await Document.findOne({
@@ -150,6 +208,7 @@ export const getDocument = async (req, res) => {
             documentId: document._id,
             userId: req.user._id
         });
+
         const quizCount = await Quiz.countDocuments({
             documentId: document._id,
             userId: req.user._id
@@ -159,21 +218,23 @@ export const getDocument = async (req, res) => {
         documentData.flashcardCount = flashcardCount;
         documentData.quizCount = quizCount;
 
-        return res.status(200).json({
+        res.status(200).json({
             success: true,
             data: documentData
         });
 
     } catch (err) {
         console.error("getDocument error:", err);
-        return res.status(500).json({
+        res.status(500).json({
             success: false,
-            message: "Error fetching this document!",
-            error: err.message
+            message: "Error fetching document!"
         });
     }
 };
 
+
+
+// ✅ DELETE DOCUMENT
 export const deleteDocument = async (req, res) => {
     try {
         const document = await Document.findOne({
@@ -188,25 +249,28 @@ export const deleteDocument = async (req, res) => {
             });
         }
 
-        if (document.filePath) {
-            const publicId = `cognify-uploads/${document.fileName}`;
-            await cloudinary.uploader.destroy(publicId, { resource_type: 'raw' })
-                .catch(err => console.log("Cloudinary delete error:", err));
+        // ☁️ delete from cloudinary (if exists)
+        if (document.cloudinaryUrl) {
+            try {
+                const publicId = document.cloudinaryUrl.split('/').pop().split('.')[0];
+                await cloudinary.uploader.destroy(publicId, { resource_type: 'raw' });
+            } catch (err) {
+                console.log("Cloudinary delete error:", err.message);
+            }
         }
 
         await document.deleteOne();
 
-        return res.status(200).json({
+        res.status(200).json({
             success: true,
             message: "Document deleted successfully"
         });
 
     } catch (err) {
         console.error("deleteDocument error:", err);
-        return res.status(500).json({
+        res.status(500).json({
             success: false,
-            message: "Error deleting document",
-            error: err.message
+            message: "Error deleting document"
         });
     }
 };
